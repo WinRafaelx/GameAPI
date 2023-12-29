@@ -63,3 +63,15 @@ func Login(db *gorm.DB, c *fiber.Ctx) error {
 	})
 	return c.JSON(fiber.Map{"message": "success"})
 }
+
+func AuthRequired(c *fiber.Ctx) error {
+	cookie := c.Cookies("jwt")
+
+	if _, err := jwt.Parse(cookie, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("JWT_SECRET")), nil
+	}); err != nil {
+		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	return c.Next()
+}

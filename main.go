@@ -22,6 +22,8 @@ func main() {
 		return auth.Login(db, c)
 	})
 
+	app.Use("/games", auth.AuthRequired)
+
 	app.Post("/games", func(c *fiber.Ctx) error {
 		return createGame(db, c)
 	})
