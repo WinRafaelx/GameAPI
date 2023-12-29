@@ -18,6 +18,9 @@ func main() {
 	app.Post("/register", func(c *fiber.Ctx) error {
 		return auth.Register(db, c)
 	})
+	app.Post("/login", func(c *fiber.Ctx) error {
+		return auth.Login(db, c)
+	})
 
 	app.Post("/games", func(c *fiber.Ctx) error {
 		return createGame(db, c)
