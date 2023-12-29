@@ -23,6 +23,10 @@ func Register(db *gorm.DB, c *fiber.Ctx) error {
 	}
 
 	user.Password = string(hashedPassword)
+	if err := db.Where("email = ?", user.Email).First(&User{}).Error; err == nil {
+		return c.Status(fiber.StatusBadRequest).SendString("Email already exists")
+	}
+
 	db.Create(user)
 	return c.JSON(user)
 }
@@ -45,6 +49,7 @@ func Login(db *gorm.DB, c *fiber.Ctx) error {
 	claims := token.Claims.(jwt.MapClaims)
 	claims["user_id"] = user.Email
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+	claims["role"] = "user"
 
 	if err := godotenv.Load(); err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
@@ -67,10 +72,26 @@ func Login(db *gorm.DB, c *fiber.Ctx) error {
 func AuthRequired(c *fiber.Ctx) error {
 	cookie := c.Cookies("jwt")
 
-	if _, err := jwt.Parse(cookie, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(cookie, func(token *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("JWT_SECRET")), nil
-	}); err != nil {
+	})
+	if err != nil {
 		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	// Extract the role from the claims
+	role, ok := claims["role"].(string)
+	if !ok {
+		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	if role != "user" {
+		return c.SendStatus(fiber.StatusForbidden)
 	}
 
 	return c.Next()
