@@ -11,8 +11,15 @@ func CreateGame(db *gorm.DB, c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
 
+	// Check if game already exists
+	game := new(Game)
+	res := db.Preload("Studio").Preload("Platforms").First(&game, "name = ?", input.Name)
+	if res.Error == nil {
+		return c.Status(fiber.StatusBadRequest).SendString("Game already exists")
+	}
+
 	studio := new(Studio)
-	res := db.First(&studio, "name = ?", input.StudioName)
+	res = db.First(&studio, "name = ?", input.StudioName)
 	if res.Error != nil {
 		// Create Studio
 		studio.Name = input.StudioName
@@ -42,7 +49,7 @@ func CreateGame(db *gorm.DB, c *fiber.Ctx) error {
 	}
 
 	// Create Game
-	game := new(Game)
+	game = new(Game)
 	game.Name = input.Name
 	game.StudioID = int(id)
 	game.Platforms = platforms

@@ -25,7 +25,7 @@ type Platform struct {
 }
 
 type Input struct {
-	Name         string   `json:"name"`
+	Name         string   `json:"name" gorm:"unique"`
 	StudioName   string   `json:"studio_name"`
 	PlatformName []string `json:"platform_name"`
 	Price        int      `json:"price"`
