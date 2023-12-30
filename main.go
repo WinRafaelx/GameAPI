@@ -2,6 +2,7 @@ package main
 
 import (
 	auth "gorm_prac/authentication"
+	game "gorm_prac/gameAPI"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/driver/postgres"
@@ -25,26 +26,26 @@ func main() {
 	app.Use("/games", auth.AuthRequired)
 
 	app.Post("/games", func(c *fiber.Ctx) error {
-		return createGame(db, c)
+		return game.CreateGame(db, c)
 	})
 	app.Get("/games", func(c *fiber.Ctx) error {
-		return getGames(db, c)
+		return game.GetGames(db, c)
 	})
 	app.Get("/games/:id", func(c *fiber.Ctx) error {
-		return getGame(db, c)
+		return game.GetGame(db, c)
 	})
 	app.Put("/games/:id", func(c *fiber.Ctx) error {
-		return updateGame(db, c)
+		return game.UpdateGame(db, c)
 	})
 	app.Delete("/games/:id", func(c *fiber.Ctx) error {
-		return deleteGame(db, c)
+		return game.DeleteGame(db, c)
 	})
 
 	if err != nil {
 		panic("failed to connect database")
 	}
 
-	db.AutoMigrate(&Game{}, &Studio{}, &Platform{}, &auth.User{})
+	db.AutoMigrate(&game.Game{}, &game.Studio{}, &game.Platform{}, &auth.User{})
 
 	app.Listen(":8000")
 }

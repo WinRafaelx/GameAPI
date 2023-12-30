@@ -1,11 +1,11 @@
-package main
+package gameAPI
 
 import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
-func createGame(db *gorm.DB, c *fiber.Ctx) error {
+func CreateGame(db *gorm.DB, c *fiber.Ctx) error {
 	input := new(Input)
 	if err := c.BodyParser(input); err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
@@ -60,7 +60,7 @@ func createGame(db *gorm.DB, c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).SendString("Game successfully created!")
 }
 
-func getGame(db *gorm.DB, c *fiber.Ctx) error {
+func GetGame(db *gorm.DB, c *fiber.Ctx) error {
 	id := c.Params("id")
 	game := new(Game)
 	res := db.Preload("Studio").Preload("Platforms").First(&game, id)
@@ -70,7 +70,7 @@ func getGame(db *gorm.DB, c *fiber.Ctx) error {
 	return c.JSON(game)
 }
 
-func getGames(db *gorm.DB, c *fiber.Ctx) error {
+func GetGames(db *gorm.DB, c *fiber.Ctx) error {
 	var games []Game
 	res := db.Preload("Studio").Preload("Platforms").Find(&games)
 	if res.Error != nil {
@@ -79,7 +79,7 @@ func getGames(db *gorm.DB, c *fiber.Ctx) error {
 	return c.JSON(games)
 }
 
-func updateGame(db *gorm.DB, c *fiber.Ctx) error {
+func UpdateGame(db *gorm.DB, c *fiber.Ctx) error {
 	// Get the game ID from the request parameters
 	id := c.Params("id")
 
@@ -141,7 +141,7 @@ func updateGame(db *gorm.DB, c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).SendString("Game successfully updated!")
 }
 
-func deleteGame(db *gorm.DB, c *fiber.Ctx) error {
+func DeleteGame(db *gorm.DB, c *fiber.Ctx) error {
 	// Get the game ID from the request parameters
 	id := c.Params("id")
 
