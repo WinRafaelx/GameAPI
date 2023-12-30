@@ -7,7 +7,7 @@ this is a project for my practice using Golang to create REST Api and use GORM t
 
 + **Tools**
 
-Golang (JWT, GORM, Fiber), Docker, PostgresSQL, PgAdmin
+Golang (JWT, GORM, Fiber), Docker, PostgreSQL, PgAdmin
 
 + **Instruction**
 
