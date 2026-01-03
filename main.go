@@ -1,8 +1,11 @@
 package main
 
 import (
-	auth "gorm_prac/authentication"
-	game "gorm_prac/gameAPI"
+	"GameAPI/controller"
+	"GameAPI/model"
+
+	"fmt"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/driver/postgres"
@@ -10,42 +13,27 @@ import (
 )
 
 func main() {
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: newLogger,
-	})
+	dsn := "host=localhost user=postgres password=postgres dbname=postgres port=5432 sslmode=disable"
+	var db *gorm.DB
+	var err error
 
+	// Try to connect 5 times because the DB might be slow to start
+	for i := 0; i < 5; i++ {
+		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		if err == nil {
+			break
+		}
+		fmt.Println("DB is still napping... retrying in 2 seconds")
+		time.Sleep(2 * time.Second)
+	}
 	app := fiber.New()
 
-	app.Post("/register", func(c *fiber.Ctx) error {
-		return auth.Register(db, c)
-	})
-	app.Post("/login", func(c *fiber.Ctx) error {
-		return auth.Login(db, c)
-	})
+	controller := controller.NewGameController(db)
+	app.Post("/games", controller.CreateGame)
+	app.Get("/games/:id", controller.GetGameByID)
+	app.Get("/games", controller.GetAllGames)
 
-	app.Use("/games", auth.AuthRequired)
-
-	app.Post("/games", func(c *fiber.Ctx) error {
-		return game.CreateGame(db, c)
-	})
-	app.Get("/games", func(c *fiber.Ctx) error {
-		return game.GetGames(db, c)
-	})
-	app.Get("/games/:id", func(c *fiber.Ctx) error {
-		return game.GetGame(db, c)
-	})
-	app.Put("/games/:id", func(c *fiber.Ctx) error {
-		return game.UpdateGame(db, c)
-	})
-	app.Delete("/games/:id", func(c *fiber.Ctx) error {
-		return game.DeleteGame(db, c)
-	})
-
-	if err != nil {
-		panic("failed to connect database")
-	}
-
-	db.AutoMigrate(&game.Game{}, &game.Studio{}, &game.Platform{}, &auth.User{})
+	db.AutoMigrate(&model.Game{})
 
 	app.Listen(":8000")
 }
